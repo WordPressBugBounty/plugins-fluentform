@@ -116,7 +116,8 @@ class StripeProcessor extends BaseProcessor
                 $checkoutArgs['line_items'][] = [
                     'amount'   => $price,
                     'currency' => $transaction->currency,
-                    'name'     => __(sprintf('Signup fee for %s', $subscription->plan_name), 'fluentform'),
+                    /* translators: %s is the plan name */
+                    'name'     => sprintf(__('Signup fee for %s', 'fluentform'), $subscription->plan_name),
                     'quantity' => 1
                 ];
             }
@@ -194,8 +195,9 @@ class StripeProcessor extends BaseProcessor
             } else if (!empty($session->error->message)) {
                 $error = $session->error->message;
             }
+            $errorMessage = __('Stripe Error: ', 'fluentform') . $error;
             wp_send_json([
-                'errors' => __('Stripe Error: ', 'fluentform') . $error
+                'errors' => apply_filters('fluentform/payment_error_message', $errorMessage, $submission, $this->form)
             ], 423);
         }
 
@@ -311,7 +313,7 @@ class StripeProcessor extends BaseProcessor
                     $transaction = $this->getTransaction($transactionHash, 'transaction_hash');
                     $returnData = $this->processStripeSession($session, $submission, $transaction);
                 } else {
-                    $error = __('Sorry! No Valid payment session found. Please try again');
+                    $error = __('Sorry! No Valid payment session found. Please try again','fluentform');
                     if (is_wp_error($session)) {
                         $error = $session->get_error_message();
                     }
@@ -327,7 +329,7 @@ class StripeProcessor extends BaseProcessor
             $returnData = [
                 'insert_id' => $submission->id,
                 'result'    => false,
-                'error'     => __('Looks like you have cancelled the payment. Please try again!', 'fluentform')
+                'error'     => apply_filters('fluentform/stripe_payment_cancelled_message', __('Looks like you have cancelled the payment. Please try again!', 'fluentform'), $submission, $this->form)
             ];
         }
 
@@ -599,7 +601,7 @@ class StripeProcessor extends BaseProcessor
 
             foreach ($metaData as $itemKey => $value) {
                 if (is_string($value) || is_numeric($value)) {
-                    $metaData[$itemKey] = strip_tags($value);
+                    $metaData[$itemKey] = wp_strip_all_tags($value);
                 }
             }
 
@@ -703,7 +705,7 @@ class StripeProcessor extends BaseProcessor
                 'component'        => 'Payment',
                 'status'           => 'error',
                 'title'            => __('Stripe Payment Error', 'fluentform'),
-                'description'      => __($message, 'fluentform')
+                'description'      => $message
             ];
 
             do_action('fluentform/log_data', $logData);

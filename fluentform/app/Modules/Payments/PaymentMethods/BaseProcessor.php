@@ -47,7 +47,7 @@ abstract class BaseProcessor
         $data = wp_parse_args($data, $this->getTransactionDefaults());
 
         if (empty($data['transaction_hash'])) {
-            $data['transaction_hash'] = md5($data['transaction_type'] . '_payment_' . $data['submission_id'] . '-' . $data['form_id'] . '_' . $data['created_at'] . '-' . time() . '-' . mt_rand(100, 999));
+            $data['transaction_hash'] = md5($data['transaction_type'] . '_payment_' . $data['submission_id'] . '-' . $data['form_id'] . '_' . $data['created_at'] . '-' . time() . '-' . wp_rand(100, 999));
         }
 
         return wpFluent()->table('fluentform_transactions')->insertGetId($data);
@@ -70,7 +70,7 @@ abstract class BaseProcessor
         }
 
         if (empty($data['transaction_hash'])) {
-            $data['transaction_hash'] = md5($data['transaction_type'] . '_payment_' . $data['submission_id'] . '-' . $data['form_id'] . '_' . $data['created_at'] . '-' . time() . '-' . mt_rand(100, 999));
+            $data['transaction_hash'] = md5($data['transaction_type'] . '_payment_' . $data['submission_id'] . '-' . $data['form_id'] . '_' . $data['created_at'] . '-' . time() . '-' . wp_rand(100, 999));
         }
 
         return wpFluent()->table('fluentform_transactions')->insertGetId($data);
@@ -296,6 +296,7 @@ abstract class BaseProcessor
                     'result'    => $data,
                     'error'     => ''
                 ];
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is checking for payment gateway webhook notification
                 if (!isset($_REQUEST['fluentform_payment_api_notify'])) {
                     // now we have to check if we need this user as auto login
                     if ($loginId = $this->getMetaData('_make_auto_login')) {
@@ -424,13 +425,20 @@ abstract class BaseProcessor
             $title = $returnData['title'];
         } else if ($returnData['type'] == 'success') {
             $title = __('Payment Success', 'fluentform');
+            $title = apply_filters('fluentform/payment_success_title', $title, $this->getSubmission(), $form);
         } else {
             $title = __('Payment Failed', 'fluentform');
+            $title = apply_filters('fluentform/payment_failed_title', $title, $this->getSubmission(), $form);
         }
 
         $message = $returnData['error'];
         if (!$message) {
             $message = $returnData['result']['message'];
+        }
+
+        // Apply payment message filter
+        if ($message) {
+            $message = apply_filters('fluentform/payment_confirmation_message', $message, $this->getSubmission(), $form);
         }
 
         $data = [
@@ -456,6 +464,7 @@ abstract class BaseProcessor
         $data = apply_filters('fluentform/frameless_page_data', $data);
 
         add_filter('pre_get_document_title', function ($title) use ($data) {
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- document_title_separator is a WordPress core hook
             return $data['title'] . ' ' . apply_filters('document_title_separator', '-') . ' ' . $data['form']->title;
         });
 
@@ -464,6 +473,7 @@ abstract class BaseProcessor
         });
 
         status_header(200);
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- loadView() returns complete HTML template with pre-sanitized content
         echo $this->loadView('frameless/frameless_page_view', $data);
         exit(200);
     }
@@ -491,7 +501,7 @@ abstract class BaseProcessor
 
         $this->changeTransactionStatus($transaction->id, $status);
         $this->changeSubmissionPaymentStatus($status);
-        $uniqueHash = md5('refund_' . $submission->id . '-' . $submission->form_id . '-' . time() . '-' . mt_rand(100, 999));
+        $uniqueHash = md5('refund_' . $submission->id . '-' . $submission->form_id . '-' . time() . '-' . wp_rand(100, 999));
 
         $refundData = [
             'form_id'          => $submission->form_id,
@@ -685,11 +695,13 @@ abstract class BaseProcessor
         if ($type == 'paid') {
             $returnData = $this->getReturnData();
         } else {
+            $pendingTitle = __('Payment was not marked as paid', 'fluentformpro');
+            $pendingMessage = __('Looks like you have is still on pending status', 'fluentformpro');
             $returnData = [
                 'insert_id' => $submission->id,
-                'title'     => __('Payment was not marked as paid', 'fluentform'),
+                'title'     => apply_filters('fluentform/payment_pending_title', $pendingTitle, $submission, $form),
                 'result'    => false,
-                'error'     => __('Looks like you have is still on pending status', 'fluentform')
+                'error'     => apply_filters('fluentform/payment_pending_message', $pendingMessage, $submission, $form)
             ];
         }
 
@@ -761,7 +773,7 @@ abstract class BaseProcessor
             }
 
             if (empty($item['transaction_hash'])) {
-                $uniqueHash = md5('subscription_payment_' . $item['submission_id'] . '-' . $item['charge_id'] . '-' . time() . '-' . mt_rand(100, 999));
+                $uniqueHash = md5('subscription_payment_' . $item['submission_id'] . '-' . $item['charge_id'] . '-' . time() . '-' . wp_rand(100, 999));
                 $item['transaction_hash'] = $uniqueHash;
             }
 
@@ -979,7 +991,7 @@ abstract class BaseProcessor
 
         $form = $this->getForm();
 
-        $uniqueHash = md5($submission->id . '-' . $form->id . '-' . time() . '-' . mt_rand(100, 999));
+        $uniqueHash = md5($submission->id . '-' . $form->id . '-' . time() . '-' . wp_rand(100, 999));
 
         $transactionData = [
             'transaction_type' => 'onetime',
@@ -1026,7 +1038,12 @@ abstract class BaseProcessor
     public function updateSubscriptionStatus($subscription, $newStatus, $note = '')
     {
         if (!$note) {
-            $note = __('Subscription status has been changed to ' . $newStatus . ' from ' . $subscription->status, 'fluentform');
+            $note = sprintf(
+                /* translators: 1: new status, 2: old status */
+                __('Subscription status has been changed to %1$s from %2$s', 'fluentform'),
+                $newStatus,
+                $subscription->status
+            );
         }
 
         $oldStatus = $subscription->status;

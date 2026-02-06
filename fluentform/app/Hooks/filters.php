@@ -39,6 +39,18 @@ add_filter('fluentform/get_global_settings_values', function ($values, $key) {
         ) {
             $values['_fluentform_global_form_settings']['default_messages'] = \FluentForm\App\Helpers\Helper::getAllGlobalDefaultMessages();
         }
+
+        // Ensure _fluentform_default_style_template has default structure if not set
+        if (in_array('_fluentform_default_style_template', $key)) {
+            if (empty($values['_fluentform_default_style_template']) || $values['_fluentform_default_style_template'] === false) {
+                $values['_fluentform_default_style_template'] = [
+                    'enabled'        => 'no',
+                    'custom_css'     => '',
+                    'styler_enabled' => 'no',
+                    'styler_theme'   => '',
+                ];
+            }
+        }
     }
 
     return $values;
@@ -138,7 +150,7 @@ $app->addFilter('fluentform/rendering_form', function ($form) {
     return $form;
 }, 10, 1);
 
-$elements = [
+$fluentformElements = [
     'select',
     'input_checkbox',
     'input_radio',
@@ -150,9 +162,9 @@ $elements = [
     'multi_payment_component'
 ];
 
-foreach ($elements as $element) {
-    $event = 'fluentform/response_render_' . $element;
-    $app->addFilter($event, function ($response, $field, $form_id, $isHtml = false) {
+foreach ($fluentformElements as $fluentformElement) {
+    $fluentformEvent = 'fluentform/response_render_' . $fluentformElement;
+    $app->addFilter($fluentformEvent, function ($response, $field, $form_id, $isHtml = false) {
         $element = $field['element'];
         $isHtml = apply_filters("fluentform/format_{$element}_response_as_html", $isHtml, $response, $field);
 
@@ -197,7 +209,7 @@ foreach ($elements as $element) {
             }
         }
 
-        if ($response && $isHtml && in_array($element, ['select', 'input_radio']) && !is_array($response)) {
+        if ($response && ($isHtml || defined('FLUENTFORM_RENDERING_ENTRIES')) && in_array($element, ['select', 'input_radio']) && !is_array($response)) {
             if (!isset($field['options'])) {
                 $field['options'] = [];
                 foreach (\FluentForm\Framework\Helpers\ArrayHelper::get($field, 'raw.settings.advanced_options', []) as $option) {
@@ -221,7 +233,7 @@ foreach ($elements as $element) {
  * Validation rule wise resolve global validation message.
  *
  */
-$rules = [
+$fluentformRules = [
     "required",
     "email",
     "numeric",
@@ -235,10 +247,10 @@ $rules = [
     "max_file_count",
     "valid_phone_number",
 ];
-foreach ($rules as $ruleName) {
-    $app->addFilter('fluentform/get_global_message_' . $ruleName,
-        function ($message) use ($ruleName) {
-            return \FluentForm\App\Helpers\Helper::getGlobalDefaultMessage($ruleName);
+foreach ($fluentformRules as $fluentformRuleName) {
+    $app->addFilter('fluentform/get_global_message_' . $fluentformRuleName,
+        function ($message) use ($fluentformRuleName) {
+            return \FluentForm\App\Helpers\Helper::getGlobalDefaultMessage($fluentformRuleName);
         }
     );
 }
