@@ -10,6 +10,7 @@ use FluentForm\App\Models\Form;
 use FluentForm\App\Models\FormMeta;
 use FluentForm\App\Models\Submission;
 use FluentForm\App\Models\SubmissionMeta;
+use FluentForm\App\Modules\Acl\Acl;
 use FluentForm\App\Modules\Form\FormDataParser;
 use FluentForm\App\Modules\Form\FormFieldsParser;
 use FluentForm\App\Services\FormBuilder\ShortCodeParser;
@@ -143,7 +144,10 @@ class TransferService
         if (!defined('FLUENTFORM_EXPORTING_ENTRIES')) {
             define('FLUENTFORM_EXPORTING_ENTRIES', true);
         }
-        $formId = (int)Arr::get($args, 'form_id');
+
+        $formId = Acl::verifyFormId(Arr::get($args, 'form_id'));
+        Acl::verify('fluentform_entries_viewer', $formId);
+
         $tableName = Arr::get($args, 'table');
         try {
             $form = Form::findOrFail($formId);
@@ -326,9 +330,10 @@ class TransferService
         $tableName = Arr::get($args, 'table');
 
         if ($tableName) {
-            $allowedTables = apply_filters('fluentform/export_allowed_tables', [
+            $allowedTables = [
                 'fluentform_submissions',
-            ]);
+                'fluentform_draft_submissions',
+            ];
             if (!in_array($tableName, $allowedTables, true)) {
                 wp_send_json([
                     'message' => __('Invalid table name for export.', 'fluentform')

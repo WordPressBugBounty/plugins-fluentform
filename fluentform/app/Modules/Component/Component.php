@@ -724,6 +724,7 @@ class Component
 
         $form_vars = [
             'id'               => $form->id,
+            'ajaxUrl'          => admin_url('admin-ajax.php'),
             'settings'         => $formSettings,
             'form_instance'    => $instanceCssClass,
             'form_id_selector' => 'fluentform_' . $form->id,
@@ -949,7 +950,7 @@ class Component
             $checkables = ['limitNumberOfEntries', 'scheduleForm', 'requireLogin'];
 
             // Ensure settings is an array
-            if (!is_array($form->settings)) {
+            if (!isset($form->settings) || !is_array($form->settings)) {
                 $form->settings = [];
             }
 
