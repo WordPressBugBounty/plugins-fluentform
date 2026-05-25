@@ -4,7 +4,7 @@ Tags: contact form, wp forms, forms, form builder, custom form
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 6.2.3
+Stable tag: 6.2.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -437,6 +437,12 @@ You can get support from our official support thread at <a href="https://wpmanag
 12. Asset Loading Comparison with Other Plugins
 
 == Changelog ==
+
+= 6.2.4 (Date: May 25, 2026) =
+- Fixes conversational form pretty URLs rendering 
+- Fixes Pretty URL toggle not persisting when disabled
+- Fixes multi-step form submit visibility and step-skip logic
+- Adds a notice when the Fluent Forms REST endpoints are unreachable so the empty form and entry lists after an upgrade are easier to diagnose
 
 = 6.2.3 (Date: May 21, 2026) =
 - Adds option group support for Dropdown and Multi-select fields
