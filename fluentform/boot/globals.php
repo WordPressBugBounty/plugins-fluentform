@@ -256,14 +256,14 @@ function fluentFormHandleScheduledEmailReport()
     \FluentForm\App\Services\Scheduler\Scheduler::processEmailReport();
 }
 
-function fluentform_upgrade_url()
+function fluentform_upgrade_url($utmContent = '')
 {
-    return 'https://fluentforms.com/pricing/?utm_source=plugin&utm_medium=wp_install&utm_campaign=ff_upgrade&theme_style=' . fluentform_get_active_theme_slug();
+    return \FluentForm\App\Helpers\Helper::utmUrl('https://fluentforms.com/pricing/', $utmContent);
 }
 
-function fluentform_integrations_url()
+function fluentform_integrations_url($utmContent = '')
 {
-    return 'https://fluentforms.com/integration/?utm_source=plugin&utm_medium=wp_install&utm_campaign=ff_upgrade&theme_style=' . fluentform_get_active_theme_slug();
+    return \FluentForm\App\Helpers\Helper::utmUrl('https://fluentforms.com/integration/', $utmContent);
 }
 
 function fluentFormApi($module = 'forms')
@@ -442,60 +442,12 @@ function fluentform_kses_js($content)
 
 function fluentform_sanitize_json_object($value)
 {
-    if (!is_string($value) || '' === trim($value)) {
-        return '';
-    }
-
-    $value = trim($value);
-
-    $decoded = json_decode($value, true);
-
-    // Best-effort recovery of a pure-data JS-object literal (unquoted keys,
-    // single quotes, trailing commas) — the documented "JS object" format for
-    // the Date/Time field's advanced config. json_decode below is the security
-    // gate: any function or expression that survives normalisation is still not
-    // valid JSON, so it is rejected. Normalisation can only recover data, never
-    // execute or emit code.
-    if (JSON_ERROR_NONE !== json_last_error() || !is_array($decoded)) {
-        $decoded = json_decode(fluentform_js_object_to_json($value), true);
-    }
-
-    if (JSON_ERROR_NONE !== json_last_error() || !is_array($decoded)) {
-        return '';
-    }
-
-    if ([] === $decoded) {
-        return '{}';
-    }
-
-    // date_config must be an object; reject a top-level JSON array. Nested
-    // arrays (e.g. flatpickr `disable: [...]`) are preserved by not forcing
-    // JSON_FORCE_OBJECT recursively.
-    if (array_keys($decoded) === range(0, count($decoded) - 1)) {
-        return '';
-    }
-
-    return wp_json_encode($decoded);
+    return \FluentForm\App\Services\FormBuilder\DateConfigNormalizer::sanitize($value);
 }
 
-function fluentform_js_object_to_json($value)
+function fluentform_date_config_to_js($json)
 {
-    // Single-quoted strings -> double-quoted (respecting escapes).
-    $value = preg_replace_callback(
-        "/'((?:\\\\.|[^'\\\\])*)'/s",
-        function ($m) {
-            return '"' . str_replace(['\\\'', '"'], ['\'', '\\"'], $m[1]) . '"';
-        },
-        $value
-    );
-
-    // Quote unquoted object keys: `{ key:` / `, key:` -> `{ "key":`.
-    $value = preg_replace('/([{,]\s*)([A-Za-z_$][A-Za-z0-9_$]*)(\s*:)/', '$1"$2"$3', $value);
-
-    // Drop trailing commas before a closing brace/bracket.
-    $value = preg_replace('/,\s*([}\]])/', '$1', $value);
-
-    return $value;
+    return \FluentForm\App\Services\FormBuilder\DateConfigNormalizer::toJs($json);
 }
 
 /**

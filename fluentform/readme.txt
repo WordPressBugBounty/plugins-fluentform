@@ -4,7 +4,7 @@ Tags: contact form, wp forms, forms, form builder, custom form
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 6.2.6
+Stable tag: 6.2.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -439,6 +439,11 @@ You can get support from our official support thread at <a href="https://wpmanag
 12. Asset Loading Comparison with Other Plugins
 
 == Changelog ==
+
+= 6.2.7 (Date: July 16, 2026) =
+- Fixes date field restrictions configurations
+- Improve Stripe API keys encryption to prevent being unusable after the site WordPress security salts change
+- Hardens the date field's inline script output against script-context injection
 
 = 6.2.6 (Date: July 10, 2026) =
 - Improves the Other option in conversational forms to be keyboard-activatable

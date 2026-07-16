@@ -1533,6 +1533,23 @@ class Helper
         return defined('FLUENTFORMPRO');
     }
 
+    public static function utmUrl($baseUrl, $utmContent = '', $utmCampaign = 'upgrade_pro')
+    {
+        $params = [
+            'utm_source'   => 'fluent-forms',
+            'utm_medium'   => self::hasPro() ? 'pro_plugin' : 'free_plugin',
+            'utm_campaign' => $utmCampaign,
+            'utm_term'     => FLUENTFORM_VERSION,
+            'theme_style'  => fluentform_get_active_theme_slug(),
+        ];
+
+        if ($utmContent) {
+            $params['utm_content'] = $utmContent;
+        }
+
+        return add_query_arg($params, $baseUrl);
+    }
+
     public static function getLandingPageEnabledForms()
     {
         if (class_exists(\FluentFormPro\classes\SharePage\SharePage::class)) {

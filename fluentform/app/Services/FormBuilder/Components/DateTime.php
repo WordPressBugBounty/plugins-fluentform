@@ -142,12 +142,11 @@ class DateTime extends BaseComponent
             (string) ArrayHelper::get($settings, 'date_config')
         );
 
+        // Emitted JS is rebuilt from validated data tokens (ints only) — the raw setting never reaches the script sink.
+        $customConfigObject = fluentform_date_config_to_js($customConfigObject);
+
         $customConfigObject = '' !== $customConfigObject ? $customConfigObject : '{}';
 
-        // The stored field value is always sanitised to a data-only JSON object
-        // (functions/expressions are stripped — they are the XSS vector for
-        // lower-privilege editors). Developers who need flatpickr callbacks
-        // supply them here from trusted server-side code, never via the setting.
         return apply_filters('fluentform/date_time_custom_config', $customConfigObject, $settings, $form);
     }
 
