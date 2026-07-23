@@ -45,12 +45,13 @@ class Helper
             }
         } elseif (is_array($input)) {
             foreach ($input as $key => &$value) {
-                $attribute = $attribute ? $attribute . '[' . $key . ']' : $key;
+                // Local var: mutating $attribute here would collapse every sibling
+                // after the first onto a bare key, resolving nested inputs to the wrong element.
+                $childAttribute = $attribute ? $attribute . '[' . $key . ']' : $key;
 
-                $value = static::sanitizer($value, $attribute, $fields);
-
-                $attribute = null;
+                $value = static::sanitizer($value, $childAttribute, $fields);
             }
+            unset($value);
         }
 
         return $input;

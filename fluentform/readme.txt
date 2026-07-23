@@ -4,7 +4,7 @@ Tags: contact form, wp forms, forms, form builder, custom form
 Requires at least: 6.4
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 6.2.7
+Stable tag: 6.2.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -440,8 +440,12 @@ You can get support from our official support thread at <a href="https://wpmanag
 
 == Changelog ==
 
+= 6.2.8 (Date: July 23, 2026) =
+- Fixes a stored XSS vulnerability in form submission handling
+
 = 6.2.7 (Date: July 16, 2026) =
 - Fixes date field restrictions configurations
+- Improves Advanced Date Configuration to support more restriction patterns: comparison operators, combined conditions, month/day/year rules, and fixed calendar dates
 - Improve Stripe API keys encryption to prevent being unusable after the site WordPress security salts change
 - Hardens the date field's inline script output against script-context injection
 
