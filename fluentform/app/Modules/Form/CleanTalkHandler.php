@@ -13,7 +13,7 @@ class CleanTalkHandler
         if ($hasCleanTalk) {
             wp_enqueue_script(
                 'ct_bot_detector',
-                'https://moderate.cleantalk.org/ct-bot-detector-wrapper.js',
+                'https://fd.cleantalk.org/ct-bot-detector-wrapper.js',
                 [],
                 FLUENTFORM_VERSION,
                 [
@@ -58,11 +58,13 @@ class CleanTalkHandler
 
     public static function spamSubmissionCheckWithApi($formData, $form)
     {
-        global $fluentformCleantalkExecuted;
-        
         $accessKey = ArrayHelper::get(get_option('_fluentform_cleantalk_details'), 'accessKey');
 
         if (!$accessKey) {
+            return false;
+        }
+
+        if (!self::claimExecution()) {
             return false;
         }
 
@@ -135,9 +137,27 @@ class CleanTalkHandler
 
         $cleantalkPassed = $response->allow == 1 && $response->spam == 0 && $response->account_status == 1;
 
+        return !$cleantalkPassed;
+    }
+
+    public static function hasExecuted()
+    {
+        global $fluentformCleantalkExecuted;
+
+        return isset($fluentformCleantalkExecuted) && true === $fluentformCleantalkExecuted;
+    }
+
+    protected static function claimExecution()
+    {
+        global $fluentformCleantalkExecuted;
+
+        if (self::hasExecuted()) {
+            return false;
+        }
+
         $fluentformCleantalkExecuted = true;
 
-        return !$cleantalkPassed;
+        return true;
     }
 
     public static function isCleantalkActivated()
@@ -145,10 +165,10 @@ class CleanTalkHandler
         $settings = get_option('_fluentform_cleantalk_details');
         return $settings && ArrayHelper::get($settings, 'status');
     }
-    
+
     public static function isEnabled()
     {
-        if (!self::isPluginEnabled()) {
+        if (self::isCleantalkActivated() || !self::isPluginEnabled()) {
             return false;
         }
 
@@ -168,6 +188,10 @@ class CleanTalkHandler
 
     public static function isSpamSubmission($formData, $form)
     {
+        if (!self::claimExecution()) {
+            return false;
+        }
+
         $cleanTalkRequest = self::getCleanTalkRequest($formData, $form);
         $cleanTalk = new \Cleantalk\Antispam\Cleantalk();
         $cleanTalk->server_url = 'https://moderate.cleantalk.org';

@@ -4,6 +4,7 @@ namespace FluentForm\App\Services\Transfer;
 
 defined('ABSPATH') or die;
 
+use FluentForm\App\Services\FormBuilder\AutocompleteTokens;
 use Exception;
 use FluentForm\App\Helpers\Helper;
 use FluentForm\App\Models\Form;
@@ -51,6 +52,7 @@ class TransferService
             foreach ($node as $key => &$value) {
                 if ('attributes' === $key) {
                     $value = self::dropEventHandlerAttributeKeys($value);
+                    $value = self::sanitizeFieldAttributes($value);
                 }
                 $value = self::sanitizeAttributeControlSetting($key, $value);
                 self::sanitizeJsonNode($value);
@@ -60,6 +62,7 @@ class TransferService
             foreach (get_object_vars($node) as $key => $value) {
                 if ('attributes' === $key) {
                     $value = self::dropEventHandlerAttributeKeys($value);
+                    $value = self::sanitizeFieldAttributes($value);
                 }
                 $value = self::sanitizeAttributeControlSetting($key, $value);
                 self::sanitizeJsonNode($value);
@@ -68,6 +71,20 @@ class TransferService
         } elseif (is_string($node)) {
             $node = wp_kses_post($node);
         }
+    }
+
+    // Scoped to a field's own attributes: sanitizeJsonNode() walks the whole meta
+    // tree, so matching on key name alone would rewrite any unrelated property
+    // that happens to be called autocomplete.
+    private static function sanitizeFieldAttributes($attributes)
+    {
+        if (is_object($attributes) && property_exists($attributes, 'autocomplete')) {
+            $attributes->autocomplete = AutocompleteTokens::sanitize($attributes->autocomplete);
+        } elseif (is_array($attributes) && array_key_exists('autocomplete', $attributes)) {
+            $attributes['autocomplete'] = AutocompleteTokens::sanitize($attributes['autocomplete']);
+        }
+
+        return $attributes;
     }
 
     private static function sanitizeAttributeControlSetting($key, $value)
@@ -361,6 +378,7 @@ class TransferService
         if (!in_array($type, ['csv', 'ods', 'xlsx', 'json'])) {
             exit('Invalid requested format');
         }
+        self::markDownloadStarted(Arr::get($args, 'download_token'));
         if ('json' == $type) {
             self::exportAsJSON($form, $args);
         }
@@ -675,6 +693,28 @@ class TransferService
         }
 
         return $sanitizedTitle . '-' . date('Y-m-d');
+    }
+
+    /**
+     * Set a short-lived cookie the admin page polls to know the download has started.
+     *
+     * @param string|null $token
+     * @return void
+     */
+    private static function markDownloadStarted($token)
+    {
+        $token = substr(sanitize_key((string) $token), 0, 32);
+
+        if (!$token || headers_sent()) {
+            return;
+        }
+
+        setcookie('ff_export_' . $token, '1', [
+            'expires'  => time() + 60,
+            'path'     => '/',
+            'secure'   => is_ssl(),
+            'samesite' => 'Lax',
+        ]);
     }
 
     private static function sendDownloadHeaders($contentType, $fileName)

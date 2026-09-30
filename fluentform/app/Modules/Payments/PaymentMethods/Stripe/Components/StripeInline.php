@@ -3,6 +3,7 @@
 namespace FluentForm\App\Modules\Payments\PaymentMethods\Stripe\Components;
 
 use FluentForm\Framework\Helpers\ArrayHelper;
+use FluentForm\App\Modules\Payments\PaymentHelper;
 use FluentForm\App\Services\FormBuilder\BaseFieldManager;
 use FluentForm\App\Modules\Payments\PaymentMethods\Stripe\StripeSettings;
 
@@ -34,6 +35,8 @@ class StripeInline extends BaseFieldManager
             return $inlineContents;
         }
 
+        $paymentElement = PaymentHelper::isStripePaymentElement($method);
+
         add_filter('fluentform/form_class', function ($classes, $targetForm) use ($form) {
             if ($form->instance_index == $targetForm->instance_index) {
                 $classes .= ' ff_has_stripe_inline';
@@ -53,7 +56,8 @@ class StripeInline extends BaseFieldManager
 
         $attributes = [
             'name'                    => 'stripe_card_element',
-            'class'                   => 'ff_stripe_card_element ff-el-form-control',
+            // The Payment Element draws its own inputs; only the bare Card Element needs the input box
+            'class'                   => $paymentElement ? 'ff_stripe_card_element' : 'ff_stripe_card_element ff-el-form-control',
             'data-wpf_payment_method' => 'stripe',
             'id'                      => $elementId,
             'data-checkout_style'     => 'embedded_form',

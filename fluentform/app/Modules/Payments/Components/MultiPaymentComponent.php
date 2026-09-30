@@ -169,7 +169,7 @@ class MultiPaymentComponent extends BaseFieldManager
 
         $elMarkup = $input = "<input " . $this->buildAttributes($inputAttributes, $form) . ">";
 
-        $elMarkup .= '<span class="ff_item_price_wrapper"><span class="ff_product_price_label">' . $priceLabel . '</span>';
+        $elMarkup .= '<span class="ff_item_price_wrapper"><span class="ff_product_price_label">' . fluentform_sanitize_html($priceLabel) . '</span>';
         $elMarkup .= ' <span class="ff_product_price">' . $money . '</span></span>';
 
         $html = $this->buildElementMarkup($elMarkup, $data, $form);

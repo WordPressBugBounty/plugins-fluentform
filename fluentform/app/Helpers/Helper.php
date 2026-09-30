@@ -1371,7 +1371,7 @@ class Helper
             } elseif ('dynamic_field' == $fieldType) {
                 $dynamicFetchValue = 'yes' == ArrayHelper::get($rawField, 'settings.dynamic_fetch');
                 if ($dynamicFetchValue) {
-                    $rawField = apply_filters('fluentform/dynamic_field_re_fetch_result_and_resolve_value', $rawField);
+                    $rawField = apply_filters('fluentform/dynamic_field_re_fetch_result_and_resolve_value', $rawField, $form->id);
                 }
                 $dfElementType = ArrayHelper::get($rawField, 'attributes.type');
                 if (in_array($dfElementType, ['radio', 'select', 'checkbox'])) {

@@ -6,6 +6,7 @@ use Exception;
 use FluentForm\App\Helpers\Helper;
 use FluentForm\App\Models\Form;
 use FluentForm\App\Models\FormMeta;
+use FluentForm\App\Services\FormBuilder\AutocompleteTokens;
 use FluentForm\App\Services\FormBuilder\DateConfigPolicy;
 use FluentForm\App\Services\FormBuilder\RatingIcon;
 use FluentForm\Framework\Support\Arr;
@@ -152,11 +153,12 @@ class Updater
         }
 
         $attributesMap = [
-            'name'        => 'sanitize_key',
-            'value'       => 'sanitize_textarea_field',
-            'id'          => 'sanitize_key',
-            'class'       => 'sanitize_text_field',
-            'placeholder' => 'sanitize_text_field',
+            'name'         => 'sanitize_key',
+            'value'        => 'sanitize_textarea_field',
+            'id'           => 'sanitize_key',
+            'class'        => 'sanitize_text_field',
+            'placeholder'  => 'sanitize_text_field',
+            'autocomplete' => [AutocompleteTokens::class, 'sanitize'],
         ];
 
         $attributesKeys = array_keys($attributesMap);
@@ -192,6 +194,10 @@ class Updater
             'crop_width'                => 'absint',
             'crop_height'               => 'absint',
             'enforce_image_dimensions'  => 'sanitize_text_field',
+            'start_text'                => 'fluentform_sanitize_html',
+            'end_text'                  => 'fluentform_sanitize_html',
+            'price_label'               => 'fluentform_sanitize_html',
+            'cart_empty_text'           => 'fluentform_sanitize_html',
         ];
 
         $settingsKeys = array_keys($settingsMap);

@@ -207,14 +207,16 @@ class ReportService
         $endDate = Arr::get($data, 'end_date');
         $formId = Acl::normalizeFormId(Arr::get($data, 'form_id'));
 
-        // Set default date range if not provided
+        // Default to the last 30 days, measured on the SITE's clock. created_at is
+        // written by current_time('mysql') and compared here as a raw string, while
+        // PHP's default timezone is UTC under WordPress — so a bare new \DateTime()
+        // would close the window at the end of the UTC day and drop everything
+        // submitted since local midnight on any site east of UTC.
         if (!$startDate || !$endDate) {
-            $now = new \DateTime();
-            $endDate = $now->format('Y-m-d 23:59:59');
+            $today = current_time('Y-m-d');
 
-            $thirtyDaysAgo = new \DateTime();
-            $thirtyDaysAgo->modify('-30 days');
-            $startDate = $thirtyDaysAgo->format('Y-m-d 00:00:00');
+            $endDate = $today . ' 23:59:59';
+            $startDate = (new \DateTime($today))->modify('-30 days')->format('Y-m-d 00:00:00');
         }
 
         return [

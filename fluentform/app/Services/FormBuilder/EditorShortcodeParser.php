@@ -114,7 +114,7 @@ class EditorShortcodeParser
                 $scookieProperty = substr($handler, strlen('cookie.'));
                 $cookieValue = array_key_exists($scookieProperty, $_COOKIE) ? sanitize_text_field(wp_unslash($_COOKIE[$scookieProperty])) : '';
 
-                return esc_attr($cookieValue);
+                return static::escapeReflectedValue($cookieValue);
             }
 
             if (false !== strpos($handler, 'dynamic.')) {
@@ -176,7 +176,34 @@ class EditorShortcodeParser
             return '';
         }
 
-        return esc_attr(Helper::flattenRequestValue($value));
+        return static::escapeReflectedValue(Helper::flattenRequestValue($value));
+    }
+
+    /**
+     * Escape a visitor-supplied value ({get.x}, {cookie.x}) for the assembled form HTML.
+     *
+     * Smartcodes are substituted after Custom HTML was sanitized, so the value can land in
+     * any attribute, including an iframe src or anchor href. esc_attr() leaves a javascript:
+     * scheme intact and keeps existing entities (?p=java&#9;script:...), so encode every
+     * ampersand and drop values that would resolve to a script-capable URL.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public static function escapeReflectedValue($value)
+    {
+        $value = wp_check_invalid_utf8((string) $value);
+
+        // Browsers strip control chars and whitespace from URLs before reading the scheme.
+        $scheme = strtolower(preg_replace('/[\x00-\x20]+/', '', $value));
+
+        if (preg_match('/^(javascript|vbscript|data):/', $scheme)) {
+            return '';
+        }
+
+        // Encode braces too, so the value cannot plant a smartcode for a later replacement pass.
+        return str_replace(['{', '}'], ['&#123;', '&#125;'], htmlspecialchars($value, ENT_QUOTES, 'UTF-8', true));
     }
 
     /**

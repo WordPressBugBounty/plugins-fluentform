@@ -428,8 +428,10 @@ class FormValidationService
                 $errors = apply_filters_deprecated(
                     'fluentForm_nonce_error',
                     [
-                        '_fluentformnonce' => [
-                            __('Nonce verification failed, please try again.', 'fluentform'),
+                        [
+                            '_fluentformnonce' => [
+                                __('Nonce verification failed, please try again.', 'fluentform'),
+                            ],
                         ],
                     ],
                     FLUENTFORM_FRAMEWORK_UPGRADE,
@@ -437,7 +439,7 @@ class FormValidationService
                     'Use fluentForm/nonce_error instead of fluentForm_nonce_error.'
                 );
 
-                $errors = $this->app->applyFilters('fluentForm/nonce_error', $errors);
+                $errors = $this->app->applyFilters('fluentform/nonce_error', $errors);
                 // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not output
                 throw new ValidationException('', 422, null, ['errors' => $errors]);
             }
@@ -540,6 +542,10 @@ class FormValidationService
 
     public function isCleanTalkSpam($formData, $form)
     {
+        if (CleanTalkHandler::isCleantalkActivated() || CleanTalkHandler::hasExecuted()) {
+            return false;
+        }
+
         if (!CleanTalkHandler::isEnabled()) {
             return false;
         }

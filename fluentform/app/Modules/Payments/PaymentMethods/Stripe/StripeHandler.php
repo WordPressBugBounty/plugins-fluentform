@@ -106,6 +106,18 @@ class StripeHandler
                     'value'    => 'yes',
                     'label'    => __('Embedded Checkout', 'fluentform')
                 ],
+                'enable_payment_element' => [
+                    'type'       => 'checkbox',
+                    'template'   => 'inputYesNoCheckbox',
+                    'value'      => 'no',
+                    'label'      => __('Enable Payment Element', 'fluentform'),
+                    'help_text'  => __('Replaces the card field with Stripe\'s Payment Element, which adds Apple Pay and Google Pay on supported devices. Apple Pay needs your site domain registered in Stripe under Settings > Payment method domains.', 'fluentform'),
+                    'dependency' => array(
+                        'depends_on' => 'embedded_checkout/value',
+                        'value'      => 'yes',
+                        'operator'   => '=='
+                    )
+                ],
                 'require_billing_info'  => [
                     'type'       => 'checkbox',
                     'template'   => 'inputYesNoCheckbox',

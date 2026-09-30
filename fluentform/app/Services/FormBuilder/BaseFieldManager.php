@@ -109,6 +109,8 @@ abstract class BaseFieldManager extends BaseComponent
             'help_message',
             'container_class',
             'class',
+            // Only surfaces on fields whose component declares attributes.autocomplete.
+            'autocomplete',
             'conditional_logics',
         ];
     }

@@ -818,19 +818,43 @@ class PaymentHelper
         $stripe = ArrayHelper::get($methods, 'stripe');
         $stripeInlineStyles = ArrayHelper::get(Helper::getFormMeta($formId, '_ff_form_styles', []), 'stripe_inline_element_style', false);
         if ($stripe) {
-            return apply_filters(
-                'fluentform/stripe_inline_config',
-                [
-                    'is_inline'     => ArrayHelper::get($stripe, 'settings.embedded_checkout.value') == 'yes',
-                    'inline_styles' => $stripeInlineStyles,
-                    'verifyZip'     => ArrayHelper::get($methods['stripe'], 'settings.verify_zip_code.value') === 'yes',
-                    'disable_link'  => false
-                ],
-                $formId
-            );
+            $config = [
+                'is_inline'              => ArrayHelper::get($stripe, 'settings.embedded_checkout.value') == 'yes',
+                'inline_styles'          => $stripeInlineStyles,
+                'verifyZip'              => ArrayHelper::get($methods['stripe'], 'settings.verify_zip_code.value') === 'yes',
+                'disable_link'           => false,
+                'enable_payment_element' => static::isStripePaymentElement($stripe),
+                'is_zero_decimal'        => static::isZeroDecimal(static::getFormCurrency($formId)),
+            ];
+
+            // Classic and conversational forms both create the Payment Element with these options
+            if ($config['enable_payment_element']) {
+                $config['payment_element_options'] = apply_filters(
+                    'fluentform/stripe_payment_element_options',
+                    [
+                        'layout'  => 'tabs',
+                        'wallets' => ['applePay' => 'auto', 'googlePay' => 'auto', 'link' => 'never'],
+                        'fields'  => ['billingDetails' => ['address' => $config['verifyZip'] ? 'auto' : 'if_required']],
+                        'appearance' => [],
+                    ],
+                    $formId
+                );
+            }
+
+            return apply_filters('fluentform/stripe_inline_config', $config, $formId);
         }
 
         return [];
+    }
+
+    /**
+     * Stripe's Payment Element (card plus Apple Pay / Google Pay) replaces the Card Element on the embedded field,
+     * so it only applies with Embedded Checkout on.
+     */
+    public static function isStripePaymentElement($stripeMethod)
+    {
+        return ArrayHelper::get($stripeMethod, 'settings.embedded_checkout.value') === 'yes'
+            && ArrayHelper::get($stripeMethod, 'settings.enable_payment_element.value') === 'yes';
     }
 
     public static function log($data, $submission = false, $forceInsert = false)

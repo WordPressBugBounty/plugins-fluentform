@@ -3,6 +3,7 @@
 namespace FluentForm\App\Services\FormBuilder\Components;
 
 use FluentForm\App\Helpers\Helper;
+use FluentForm\App\Services\FormBuilder\AutocompleteTokens;
 use FluentForm\Framework\Helpers\ArrayHelper;
 
 class Address extends BaseComponent
@@ -72,8 +73,9 @@ class Address extends BaseComponent
             do_action('fluentform/address_map_autocomplete', $data, $form);
         }
 
+        // autocomplete belongs to the sub-fields, not to this wrapper <div>.
         $atts = $this->buildAttributes(
-            ArrayHelper::except($data['attributes'], 'name')
+            ArrayHelper::except($data['attributes'], ['name', 'autocomplete'])
         );
         
         //re order fields from version 4.3.2
@@ -115,6 +117,12 @@ class Address extends BaseComponent
                     $itemName = $item['attributes']['name'];
                     $item['attributes']['data-key_name'] = $itemName;
                     $item['attributes']['name'] = $rootName . '[' . $itemName . ']';
+
+                    $item['attributes']['autocomplete'] = AutocompleteTokens::forSubField(
+                        $itemName,
+                        ArrayHelper::get($data, 'attributes.autocomplete'),
+                        ArrayHelper::get($item, 'attributes.autocomplete')
+                    );
 
                     if ('select_country' === $item['element'] && $googleAutoComplete) {
                         $selectedCountries = (array) ArrayHelper::get($item, 'attributes.value', []);

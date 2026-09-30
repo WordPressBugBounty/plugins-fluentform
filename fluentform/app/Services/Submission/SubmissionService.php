@@ -706,14 +706,19 @@ class SubmissionService
 
         do_action('fluentform/submission_user_changed', $submission, $user);
 
+        // Email is roster PII; gate it on list_users (permalink self-gates). FF-SEC-45.
+        $responseUser = [
+            'name'      => $user->display_name,
+            'ID'        => $user->ID,
+            'permalink' => get_edit_user_link($user->ID),
+        ];
+        if (current_user_can('list_users')) {
+            $responseUser['email'] = $user->user_email;
+        }
+
         return ([
             'message' => __('Selected user has been successfully assigned to this submission', 'fluentform'),
-            'user'    => [
-                'name'      => $user->display_name,
-                'email'     => $user->user_email,
-                'ID'        => $user->ID,
-                'permalink' => get_edit_user_link($user->ID),
-            ],
+            'user'    => $responseUser,
             'user_id' => $userId,
         ]);
     }

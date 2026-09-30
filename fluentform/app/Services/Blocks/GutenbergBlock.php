@@ -42,8 +42,8 @@ class GutenbergBlock
             return '<div class="fluentform-no-form-selected"><p>' . __('Please select a form', 'fluentform') . '</p></div>';
         }
 
-        $className = sanitize_text_field(Arr::get($atts, 'className', ''));
-        $themeStyle = sanitize_text_field(Arr::get($atts, 'themeStyle', ''));
+        $className = str_replace(['[', ']'], '', sanitize_text_field(Arr::get($atts, 'className', '')));
+        $themeStyle = str_replace(['[', ']'], '', sanitize_text_field(Arr::get($atts, 'themeStyle', '')));
         $type = Helper::isConversionForm($formId) ? 'conversational' : '';
 
         // Custom CSS for block styling
@@ -66,7 +66,7 @@ class GutenbergBlock
         }
 
         // Return the form with inline styles
-        $formOutput = do_shortcode('[fluentform theme="' . $themeStyle . '" css_classes="' . $className . ' ff_guten_block ff_guten_block-' . $formId . '" id="' . $formId . '"  type="' . $type . '"]');
+        $formOutput = do_shortcode('[fluentform theme="' . esc_attr($themeStyle) . '" css_classes="' . esc_attr($className) . ' ff_guten_block ff_guten_block-' . $formId . '" id="' . $formId . '"  type="' . $type . '"]');
 
         if ($formOutput) {
             $allStyles = '';

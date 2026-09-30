@@ -11,15 +11,15 @@ class ComposerStaticInitb99e07d253bf4705bf50ef1db90791ef
     );
 
     public static $prefixLengthsPsr4 = array (
-        'W' =>
+        'W' => 
         array (
             'WPFluent\\' => 9,
         ),
-        'O' =>
+        'O' => 
         array (
             'OpenSpout\\' => 10,
         ),
-        'F' =>
+        'F' => 
         array (
             'FluentForm\\Framework\\' => 21,
             'FluentForm\\App\\' => 15,
@@ -27,19 +27,19 @@ class ComposerStaticInitb99e07d253bf4705bf50ef1db90791ef
     );
 
     public static $prefixDirsPsr4 = array (
-        'WPFluent\\' =>
+        'WPFluent\\' => 
         array (
             0 => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent',
         ),
-        'OpenSpout\\' =>
+        'OpenSpout\\' => 
         array (
             0 => __DIR__ . '/..' . '/openspout/openspout/src',
         ),
-        'FluentForm\\Framework\\' =>
+        'FluentForm\\Framework\\' => 
         array (
             0 => __DIR__ . '/..' . '/wpfluent/framework/src/WPFluent',
         ),
-        'FluentForm\\App\\' =>
+        'FluentForm\\App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),
@@ -109,6 +109,7 @@ class ComposerStaticInitb99e07d253bf4705bf50ef1db90791ef
         'FluentForm\\App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'FluentForm\\App\\Modules\\Acl\\Acl' => __DIR__ . '/../..' . '/app/Modules/Acl/Acl.php',
         'FluentForm\\App\\Modules\\AddOnModule' => __DIR__ . '/../..' . '/app/Modules/AddOnModule.php',
+        'FluentForm\\App\\Modules\\AgentReady\\WebMCPModule' => __DIR__ . '/../..' . '/app/Modules/AgentReady/WebMCPModule.php',
         'FluentForm\\App\\Modules\\Ai\\AiController' => __DIR__ . '/../..' . '/app/Modules/Ai/AiController.php',
         'FluentForm\\App\\Modules\\Ai\\AiFormBuilder' => __DIR__ . '/../..' . '/app/Modules/Ai/AiFormBuilder.php',
         'FluentForm\\App\\Modules\\Ai\\FluentFormAIAPI' => __DIR__ . '/../..' . '/app/Modules/Ai/FluentFormAIAPI.php',
@@ -231,6 +232,7 @@ class ComposerStaticInitb99e07d253bf4705bf50ef1db90791ef
         'FluentForm\\App\\Services\\FluentConversational\\Classes\\Elements\\WelcomeScreen' => __DIR__ . '/../..' . '/app/Services/FluentConversational/Classes/Elements/WelcomeScreen.php',
         'FluentForm\\App\\Services\\FluentConversational\\Classes\\Fonts' => __DIR__ . '/../..' . '/app/Services/FluentConversational/Classes/Fonts.php',
         'FluentForm\\App\\Services\\FluentConversational\\Classes\\Form' => __DIR__ . '/../..' . '/app/Services/FluentConversational/Classes/Form.php',
+        'FluentForm\\App\\Services\\FormBuilder\\AutocompleteTokens' => __DIR__ . '/../..' . '/app/Services/FormBuilder/AutocompleteTokens.php',
         'FluentForm\\App\\Services\\FormBuilder\\BaseFieldManager' => __DIR__ . '/../..' . '/app/Services/FormBuilder/BaseFieldManager.php',
         'FluentForm\\App\\Services\\FormBuilder\\Components' => __DIR__ . '/../..' . '/app/Services/FormBuilder/Components.php',
         'FluentForm\\App\\Services\\FormBuilder\\Components\\Address' => __DIR__ . '/../..' . '/app/Services/FormBuilder/Components/Address.php',

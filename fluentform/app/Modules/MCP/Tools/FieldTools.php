@@ -4,6 +4,7 @@ namespace FluentForm\App\Modules\MCP\Tools;
 
 defined('ABSPATH') || exit;
 
+use FluentForm\App\Helpers\Helper;
 use FluentForm\App\Models\Form;
 use FluentForm\App\Modules\MCP\Support\ErrorCodes;
 use FluentForm\App\Modules\MCP\Support\FormAccess;
@@ -158,7 +159,9 @@ class FieldTools
 
                     // Replace only the fields; keep the fresh submitButton and any
                     // other top-level keys as they stand right now.
-                    $decoded['fields'] = $newFields;
+                    $decoded['fields'] = Helper::isConversionForm($formId)
+                        ? self::withStylePrefs($newFields, Arr::get($decoded, 'fields', []))
+                        : $newFields;
 
                     (new FormService())->update([
                         'form_id'    => $formId,
@@ -187,6 +190,36 @@ class FieldTools
             },
             ['form_id' => $formId]
         );
+    }
+
+    /**
+     * create-form gets style_pref from Converter::convertExistingForm; this path
+     * never reaches it, and the editor reads style_pref.layout unguarded. Kept
+     * fields keep their stored block so an added question resets no layout.
+     */
+    private static function withStylePrefs($fields, $existing)
+    {
+        $stored = [];
+        foreach ($existing as $field) {
+            $name = Arr::get($field, 'attributes.name');
+            if ($name && isset($field['style_pref'])) {
+                $stored[$name] = $field['style_pref'];
+            }
+        }
+
+        foreach ($fields as $index => $field) {
+            $name = Arr::get($field, 'attributes.name');
+            $fields[$index]['style_pref'] = isset($stored[$name]) ? $stored[$name] : [
+                'layout'           => 'default',
+                'media'            => fluentFormGetRandomPhoto(),
+                'brightness'       => 0,
+                'alt_text'         => '',
+                'media_x_position' => 50,
+                'media_y_position' => 50,
+            ];
+        }
+
+        return $fields;
     }
 
     /**

@@ -109,6 +109,15 @@ $fluentformElementCustomizationSettings = [
         'label'     => __('Placeholder', 'fluentform'),
         'help_text' => __('This is the field placeholder, the user will see this if the input field is empty.', 'fluentform'),
     ],
+    'autocomplete' => [
+        'template'    => 'select',
+        'label'       => __('Autocomplete', 'fluentform'),
+        'filterable'  => true,
+        'creatable'   => true,
+        'placeholder' => __('Select an autocomplete value', 'fluentform'),
+        'help_text'   => __('Tells the browser what kind of information this field collects so it can be autofilled, and lets assistive technology identify the input purpose (WCAG 1.3.5). Choose "off" to disable browser autofill, or "None" to add no attribute at all. You can also type a scoped value such as "billing postal-code". Anything outside the HTML autofill list is ignored when the form is displayed.', 'fluentform'),
+        'options'     => \FluentForm\App\Services\FormBuilder\AutocompleteTokens::editorOptions(),
+    ],
     'date_format' => [
         'template'    => 'select',
         'label'       => __('Date Format', 'fluentform'),

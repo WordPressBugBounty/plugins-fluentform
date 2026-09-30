@@ -7,6 +7,7 @@ defined('ABSPATH') or die;
 use FluentForm\App\Helpers\Helper;
 use FluentForm\App\Modules\Payments\PaymentHelper;
 use FluentForm\App\Modules\Component\Component;
+use FluentForm\App\Services\FormBuilder\AutocompleteTokens;
 use FluentForm\App\Services\FormBuilder\RatingIcon;
 use FluentForm\App\Services\FormBuilder\Components\DateTime;
 use FluentForm\App\Modules\Form\FormFieldsParser;
@@ -202,6 +203,14 @@ class Converter
                         if (!$hasSaveAndResume) {
                             $item['attributes']['value'] = self::setDefaultValue(ArrayHelper::get($item, 'attributes.value', ''), $item, $form);;
                         }
+                        // Per-sub-field token, resolved exactly as the classic renderer
+                        // does, so both renderers agree on the same saved form.
+                        $item['attributes']['autocomplete'] = ArrayHelper::get(AutocompleteTokens::normalizeAttributes(['autocomplete' => AutocompleteTokens::forSubField(
+                            ArrayHelper::get($item, 'attributes.name'),
+                            ArrayHelper::get($field, 'attributes.autocomplete'),
+                            ArrayHelper::get($item, 'attributes.autocomplete')
+                        )]), 'autocomplete');
+
                         $question['fields'][] = wp_parse_args($itemQuestion, $item);
                     }
                 }
@@ -233,6 +242,14 @@ class Converter
                         
                         $item['attributes']['value'] = self::getComponent()->replaceEditorSmartCodes(ArrayHelper::get($item, 'attributes.value'), $form);
                         
+                        // Per-sub-field token, resolved exactly as the classic renderer
+                        // does, so both renderers agree on the same saved form.
+                        $item['attributes']['autocomplete'] = ArrayHelper::get(AutocompleteTokens::normalizeAttributes(['autocomplete' => AutocompleteTokens::forSubField(
+                            ArrayHelper::get($item, 'attributes.name'),
+                            ArrayHelper::get($field, 'attributes.autocomplete'),
+                            ArrayHelper::get($item, 'attributes.autocomplete')
+                        )]), 'autocomplete');
+
                         $question['fields'][] = wp_parse_args($itemQuestion, $item);
                     }
                 }
@@ -296,7 +313,7 @@ class Converter
             } elseif ('dynamic_field' === $field['element']) {
                 $dynamicFetchValue = 'yes' == ArrayHelper::get($field, 'settings.dynamic_fetch');
                 if ($dynamicFetchValue) {
-                    $field = apply_filters('fluentform/dynamic_field_re_fetch_result_and_resolve_value', $field);
+                    $field = apply_filters('fluentform/dynamic_field_re_fetch_result_and_resolve_value', $field, $form->id);
                     $question['answer'] = self::getComponent()->replaceEditorSmartCodes(ArrayHelper::get($field, 'attributes.value'), $form);
                 }
                 $type = ArrayHelper::get($field, 'settings.field_type', 'select');
@@ -736,7 +753,7 @@ class Converter
                 }
             } elseif ('payment_summary_component' === $field['element']) {
                 $question['title'] = self::getComponent()->replaceEditorSmartCodes(__('Payment Summary', 'fluentform'), $form);
-                $question['emptyText'] = $field['settings']['cart_empty_text'];
+                $question['emptyText'] = fluentform_sanitize_html(ArrayHelper::get($field, 'settings.cart_empty_text', ''));
             } elseif ('net_promoter_score' === $field['element']) {
                 if (!ArrayHelper::exists($question, 'answer')) {
                     $question['answer'] = (int) $field['attributes']['value'];
@@ -968,6 +985,7 @@ class Converter
             'type'            => ArrayHelper::get(static::fieldTypes(), $field['element']),
             'ff_input_type'   => ArrayHelper::get($field, 'element'),
             'container_class' => ArrayHelper::get($field, 'settings.container_class'),
+            'autocomplete'    => ArrayHelper::get(AutocompleteTokens::normalizeAttributes((array) ArrayHelper::get($field, 'attributes', [])), 'autocomplete'),
             'placeholder'     => self::getComponent()->replaceEditorSmartCodes(ArrayHelper::get($field, 'attributes.placeholder'), $form),
             'maxLength'       => ArrayHelper::get($field, 'attributes.maxlength'),
             'required'        => ArrayHelper::get($validationsRules, 'required.value'),

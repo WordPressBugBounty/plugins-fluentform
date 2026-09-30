@@ -23,7 +23,18 @@ return [
         'advanced' => [
             'container_class',
             'name',
+            'autocomplete',
             'conditional_logics',
+        ],
+        'advancedExtras' => [
+            'autocomplete' => [
+                'template'   => 'select',
+                'label'      => __('Autocomplete', 'fluentform'),
+                'filterable' => false,
+                'creatable'  => false,
+                'help_text'  => __('Applies to every input in this field. "Automatic" gives each one the autofill value that matches it, "off" disables browser autofill for the whole field, and "None" adds no attribute at all.', 'fluentform'),
+                'options'    => \FluentForm\App\Services\FormBuilder\AutocompleteTokens::baseEditorOptions(),
+            ],
         ],
     ],
     'input_email' => [
@@ -35,6 +46,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',
@@ -61,6 +73,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',
@@ -87,6 +100,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',
@@ -107,7 +121,18 @@ return [
         'advanced' => [
             'class',
             'name',
+            'autocomplete',
             'conditional_logics',
+        ],
+        'advancedExtras' => [
+            'autocomplete' => [
+                'template'   => 'select',
+                'label'      => __('Autocomplete', 'fluentform'),
+                'filterable' => false,
+                'creatable'  => false,
+                'help_text'  => __('Applies to every input in this field. Address autofill is off unless you choose "On", which gives each input the autofill value that matches it. Choose "off" to disable browser autofill for the whole field, or "None" to add no attribute at all.', 'fluentform'),
+                'options'    => \FluentForm\App\Services\FormBuilder\AutocompleteTokens::addressEditorOptions(),
+            ],
         ],
     ],
     'select_country' => [
@@ -139,6 +164,7 @@ return [
             'mobile_keyboard_type_number',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',
@@ -165,6 +191,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'dynamic_default_value',
             'container_class',
             'class',
@@ -220,6 +247,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',
@@ -239,6 +267,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',
@@ -259,6 +288,7 @@ return [
             'validation_rules',
         ],
         'advanced' => [
+            'autocomplete',
             'value',
             'container_class',
             'class',

@@ -183,7 +183,7 @@ foreach ($fluentformElements as $fluentformElement) {
         if ('dynamic_field' == $element) {
             $dynamicFetchValue = 'yes' == \FluentForm\Framework\Helpers\ArrayHelper::get($field, 'raw.settings.dynamic_fetch');
             if ($dynamicFetchValue) {
-                $field = apply_filters('fluentform/dynamic_field_re_fetch_result_and_resolve_value', $field);
+                $field = apply_filters('fluentform/dynamic_field_re_fetch_result_and_resolve_value', $field, $form_id);
             }
             $attrType = \FluentForm\Framework\Helpers\ArrayHelper::get($field, 'raw.attributes.type');
             if ('radio' == $attrType) {
@@ -432,6 +432,9 @@ $app->addFilter('fluentform/editor_element_settings_placement', function($placem
     $placements['recaptcha']['general'][] = 'render_recaptcha_v3_badge';
     return $placements;
 }, 10, 2);
+
+
+(new \FluentForm\App\Modules\AgentReady\WebMCPModule(wpFluentForm()))->register();
 
 
 /*

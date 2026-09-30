@@ -3,6 +3,7 @@
 namespace FluentForm\App\Services\FormBuilder\Components;
 
 use FluentForm\Framework\Helpers\ArrayHelper;
+use FluentForm\App\Services\FormBuilder\AutocompleteTokens;
 use FluentForm\App\Modules\Component\Component;
 use FluentForm\Framework\Support\Helper;
 use stdClass;
@@ -55,7 +56,10 @@ class BaseComponent
     {
         $atts = '';
         
+        $attributes = AutocompleteTokens::normalizeAttributes($attributes);
+
         foreach ($attributes as $key => $value) {
+
             if ($value || 0 === $value || '0' === $value) {
                 $value = htmlspecialchars($value);
                 $atts .= esc_attr($key) . '="' . $value . '" ';

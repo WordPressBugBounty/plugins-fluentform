@@ -153,10 +153,16 @@ $app->addAction('wp_ajax_fluentform-get-users', function () use ($app, $resolveS
 
     Acl::verify('fluentform_manage_entries', $formId);
     $search = sanitize_text_field($app->request->get('search'));
-    $users = get_users([
-        'search' => "*{$search}*",
-        'number' => 50,
-    ]);
+    if (current_user_can('list_users')) {
+        $users = get_users([
+            'search' => "*{$search}*",
+            'number' => 50,
+        ]);
+    } else {
+        // Non-admins confirm an exact email only, never browse the roster (FF-SEC-45).
+        $user = is_email($search) ? get_user_by('email', $search) : false;
+        $users = $user ? [$user] : [];
+    }
     $formattedUsers = [];
     foreach ($users as $user) {
         $formattedUsers[] = [

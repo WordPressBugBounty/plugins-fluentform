@@ -740,6 +740,54 @@ class PaymentAction
         return $total;
     }
 
+    // A $0 order is a completed free order when a real priced product was zeroed by a
+    // server-validated discount (both a non-discount and a discount line are present;
+    // discount lines come solely from getValidCoupons), or when the visitor chose one of
+    // the form's own $0 options. Otherwise the $0 total is an omitted or zeroed input.
+    public function isZeroTotalFreeOrder()
+    {
+        $hasProduct = $hasDiscount = false;
+        foreach ($this->getOrderItems() as $item) {
+            if (ArrayHelper::get($item, 'type') === 'discount') {
+                $hasDiscount = true;
+            } else {
+                $hasProduct = true;
+            }
+        }
+        return ($hasProduct && $hasDiscount) || $this->hasSelectedFreeOption();
+    }
+
+    // Validation rejects any option the form does not offer, so a selected $0 option is the site's own.
+    protected function hasSelectedFreeOption()
+    {
+        $data = (array) ArrayHelper::get($this->submissionData, 'response');
+        foreach ((array) $this->paymentInputs as $input) {
+            $selected = (array) ArrayHelper::get($data, ArrayHelper::get($input, 'attributes.name'), []);
+            if (!$selected || !$this->isFieldVisible($input)) {
+                continue;
+            }
+            foreach (ArrayHelper::get($input, 'settings.pricing_options', []) as $option) {
+                if (in_array(sanitize_text_field($option['label']), $selected) && !(float) $option['value']) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // The entry is not inserted yet; stamp a free order the moment it is, before any
+    // payment-success consumer runs. An absent flag means an empty order.
+    public function flagZeroTotalOrder()
+    {
+        if (!$this->isZeroTotalFreeOrder()) {
+            return;
+        }
+
+        add_action('fluentform/notify_on_form_submit', function ($insertId, $formData, $form) {
+            Helper::setSubmissionMeta($insertId, '_ff_zero_total_free_order', 'yes', $form->id);
+        }, 1, 3);
+    }
+
     public function getPaymentType()
     {
         return count($this->getSubscriptionItems()) ? 'subscription' : 'product'; // return value product|subscription|donation

@@ -324,7 +324,10 @@ class PaymentHandler
             10,
             3
         );
-        
+
+        add_filter('fluentform/validate_input_item_custom_payment_component', [$this, 'validatePaymentNumber'], 10, 3);
+        add_filter('fluentform/validate_input_item_item_quantity_component', [$this, 'validatePaymentNumber'], 10, 3);
+
         add_filter(
             'fluentform/validate_input_item_payment_method',
             [$this, 'validatePaymentMethod'],
@@ -491,8 +494,9 @@ class PaymentHandler
         }
         
         $paymentAction = new PaymentAction($form, $insertData, $data);
-        
+
         if (!$paymentAction->getSubscriptionItems() && !$paymentAction->getCalculatedAmount()) {
+            $paymentAction->flagZeroTotalOrder();
             return;
         }
         
@@ -726,7 +730,8 @@ class PaymentHandler
     
     public function validatePaymentInputs($error, $field, $formData)
     {
-        if (ArrayHelper::get($formData, $field['name'])) {
+        // A submitted "0" is still a value and must match an offered option.
+        if (!in_array(ArrayHelper::get($formData, $field['name']), [null, '', []], true)) {
             $fieldType = ArrayHelper::get($field, 'raw.attributes.type');
             
             if (in_array($fieldType, ['radio', 'select', 'checkbox'])) {
@@ -740,7 +745,7 @@ class PaymentHandler
                 if (in_array($fieldType, ['radio', 'select'])) {
                     $acceptedPaymentPlan = in_array($formData[$field['name']], $pricingOptions);
                 } else {
-                    $acceptedPaymentPlan = array_diff($formData[$field['name']], $pricingOptions);
+                    $acceptedPaymentPlan = array_diff((array) $formData[$field['name']], $pricingOptions);
                     
                     $acceptedPaymentPlan = empty($acceptedPaymentPlan);
                 }
@@ -753,7 +758,21 @@ class PaymentHandler
         
         return $error;
     }
-    
+
+    // The order builder silently drops an amount or quantity it cannot price, zeroing the order.
+    public function validatePaymentNumber($error, $field, $formData)
+    {
+        $value = ArrayHelper::get($formData, $field['name']);
+        if ($error || in_array($value, [null, ''], true) || (is_numeric($value) && $value > 0)) {
+            return $error;
+        }
+
+        $isOptionalZero = is_numeric($value) && 0 == $value
+            && !ArrayHelper::get($field, 'raw.settings.validation_rules.required.value');
+
+        return $isOptionalZero ? $error : __('This payment item is invalid', 'fluentform');
+    }
+
     public function validatePaymentMethod($error, $field, $formData, $fields, $form)
     {
         if ($selectedMethod = ArrayHelper::get($formData, $field['name'])) {

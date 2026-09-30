@@ -886,8 +886,17 @@ class Component
             $attrDefaultValues['{payment_total}'] = '<span class="ff_order_total"></span>';
         }
 
-        // Finally, replace the patterns with the replacements and return the output HTML.
-        return str_replace(array_keys($attrDefaultValues), array_values($attrDefaultValues), $output);
+        // Replace in a single pass. str_replace() with arrays re-scans text an earlier key inserted,
+        // so ?a=javascript{get.b}&b=:alert(1) would assemble a script URL from two escaped values.
+        $replacements = [];
+        foreach ($attrDefaultValues as $pattern => $replacement) {
+            // strtr() returns false on an empty key before PHP 8.
+            if ('' !== (string) $pattern && (is_scalar($replacement) || null === $replacement)) {
+                $replacements[(string) $pattern] = (string) $replacement;
+            }
+        }
+
+        return strtr($output, $replacements);
     }
 
     /**
@@ -1377,14 +1386,14 @@ class Component
                 } else {
                     $dateFormat = get_option('date_format') . ' ' . get_option('time_format');
                 }
-                return date($dateFormat, strtotime($form->created_at));
+                return esc_html(date($dateFormat, strtotime($form->created_at)));
             } elseif ('updated_at' == $atts['info']) {
                 if ($atts['date_format']) {
                     $dateFormat = $atts['date_format'];
                 } else {
                     $dateFormat = get_option('date_format') . ' ' . get_option('time_format');
                 }
-                return date($dateFormat, strtotime($form->updated_at));
+                return esc_html(date($dateFormat, strtotime($form->updated_at)));
             } elseif ('payment_total' == $atts['info']) {
                 if (!defined('FLUENTFORMPRO')) {
                     return '';

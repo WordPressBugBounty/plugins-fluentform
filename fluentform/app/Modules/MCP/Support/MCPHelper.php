@@ -79,13 +79,19 @@ class MCPHelper
             return $value;
         }
 
-        // Neutralize a submitter-supplied marker so the fence cannot be closed
-        // from inside it (the classic delimiter-escape).
-        $value = str_replace(
-            [self::UNTRUSTED_OPEN, self::UNTRUSTED_CLOSE],
-            ['(untrusted_user_input)', '(/untrusted_user_input)'],
+        // Neutralize a submitter-supplied marker so the fence cannot be closed from
+        // inside it. Loose match on purpose: the reader is a model, not strcmp.
+        $neutralised = preg_replace_callback(
+            '/\[\[[\s\p{Z}\p{Cf}]*(\/?)[\s\p{Z}\p{Cf}]*UNTRUSTED[^A-Za-z]*USER[^A-Za-z]*INPUT[\s\p{Z}\p{Cf}]*\]\]/iu',
+            function ($m) {
+                return '(' . ('' !== $m[1] ? '/' : '') . 'untrusted_user_input)';
+            },
             $value
         );
+
+        // /u returns null on invalid UTF-8: blunt the brackets rather than return a
+        // value whose markers were never inspected.
+        $value = null !== $neutralised ? $neutralised : str_replace('[[', '(', $value);
 
         return self::UNTRUSTED_OPEN . $value . self::UNTRUSTED_CLOSE;
     }

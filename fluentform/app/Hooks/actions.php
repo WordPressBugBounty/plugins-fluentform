@@ -543,6 +543,15 @@ $app->addAction('fluentform/loading_editor_assets', function ($form) {
         return $item;
     });
 
+    foreach (['input_text', 'input_email', 'textarea', 'input_number', 'select', 'input_url', 'input_password', 'input_date', 'input_name', 'address', 'phone'] as $autocompleteElement) {
+        add_filter('fluentform/editor_init_element_' . $autocompleteElement, function ($item) {
+            if (!isset($item['attributes']['autocomplete'])) {
+                $item['attributes']['autocomplete'] = '';
+            }
+            return $item;
+        });
+    }
+
     add_filter('fluentform/editor_init_element_input_mask', function ($item) {
         if (!isset($item['settings']['mobile_keyboard_type'])) {
             $item['settings']['mobile_keyboard_type'] = '';

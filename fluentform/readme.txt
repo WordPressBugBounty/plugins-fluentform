@@ -4,7 +4,7 @@ Tags: contact form, wp forms, forms, form builder, custom form
 Requires at least: 6.4
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 6.2.14
+Stable tag: 6.2.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -439,6 +439,21 @@ You can get support from our official support thread at <a href="https://wpmanag
 12. Asset Loading Comparison with Other Plugins
 
 == Changelog ==
+
+= 6.2.15 (Date: September 30, 2026) =
+- Adds a Stripe Payment Element option to the inline Stripe field, with Apple Pay and Google Pay
+- Adds an Autocomplete setting on form fields so browsers can fill in details like name, email, and address
+- Adds a Duplicate option for integration feeds
+- Adds an Export option to the Entries page
+- Adds an optional per-form AI Agents (WebMCP) setting that describes your form to AI-powered browsers, turned off by default
+- Fixes the fluentform_info shortcode output so it is escaped safely
+- Fixes Stripe 3D Secure payments not completing on conversational forms
+- Fixes CleanTalk checking the same submission more than once
+- Fixes the default report date range missing today's entries on sites ahead of UTC
+- Fixes conversational forms that could not be edited after their fields were updated through MCP
+- Hardens input sanitization and permission checks across field settings, blocks, and entries
+- Fixes payment forms accepting a zero, negative, or unlisted payment value that could skip payment
+- Sends the Payment Success email only for paid orders, free choices, and fully discounted coupon orders
 
 = 6.2.14 (Date: September 15, 2026) =
 - Improves Stripe payment confirmation when updates arrive after checkout

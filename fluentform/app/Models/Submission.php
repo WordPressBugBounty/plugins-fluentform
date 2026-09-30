@@ -390,7 +390,10 @@ class Submission extends Model
     }
 
     public function allSubmissions($attributes = []) {
-        $searchExtender = function ($q, $escaped) {
+        // Match by form title only in the cross-form view; once a form is
+        // selected the search must hit submission data only, so the listing
+        // stays identical to the (form-scoped) export and single-form list.
+        $searchExtender = Arr::get($attributes, 'form_id') ? null : function ($q, $escaped) {
             $q->orWhereHas('form', function ($q) use ($escaped) {
                 $q->where('title', 'LIKE', "%{$escaped}%");
             });

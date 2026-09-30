@@ -2,6 +2,7 @@
 
 namespace FluentForm\App\Services\FormBuilder\Components;
 
+use FluentForm\App\Services\FormBuilder\AutocompleteTokens;
 use FluentForm\App\Helpers\Helper;
 use FluentForm\Framework\Helpers\ArrayHelper;
 use FluentForm\App\Services\FormBuilder\Components\Select;
@@ -46,8 +47,9 @@ class Name extends Select
         if ($containerClass = ArrayHelper::get($data, 'settings.container_class')) {
             $data['attributes']['class'] .= ' ' . $containerClass;
         }
+        // autocomplete belongs to the sub-fields, not to this wrapper <div>.
         $atts = $this->buildAttributes(
-            ArrayHelper::except($data['attributes'], 'name')
+            ArrayHelper::except($data['attributes'], ['name', 'autocomplete'])
         );
 
         $html = "<div {$atts}>"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $atts is escaped before being passed in.
@@ -64,6 +66,12 @@ class Name extends Select
             if ($field['settings']['visible']) {
                 $fieldName = $field['attributes']['name'];
                 $field['attributes']['name'] = $rootName . '[' . $fieldName . ']';
+
+                $field['attributes']['autocomplete'] = AutocompleteTokens::forSubField(
+                    $fieldName,
+                    ArrayHelper::get($data, 'attributes.autocomplete'),
+                    ArrayHelper::get($field, 'attributes.autocomplete')
+                );
                 @$field['attributes']['class'] = trim(
                     'ff-el-form-control ' .
                     $field['attributes']['class']
